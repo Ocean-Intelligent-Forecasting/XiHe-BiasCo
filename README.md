@@ -566,4 +566,4 @@ If you use the XiHe-BiasCo code or sample data in your research, please cite the
 
 ## 14. Contact
 
-For questions regarding the released code, auxiliary files, or representative sample data, please contact the corresponding authors of the associated manuscript.
+For questions regarding the released code, auxiliary files, or representative sample data, please contact Xiang Wang (Email: xiangwangcn@nudt.edu.cn).
