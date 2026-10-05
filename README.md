@@ -552,7 +552,7 @@ The released code reflects the research implementation used in the study and the
 
 If you use the XiHe-BiasCo code or sample data in your research, please cite the associated manuscript:
 
-**XiHe-BiasCo: Enhancing Operational Numerical Global Ocean Forecasting Systems with a Multivariable Knowledge-Transfer Deep Learning Framework**
+**Physically Coherent Bias Correction of Operational Numerical Global Ocean Forecasting via Multivariable Knowledge Transfer**
 
 [Citation details will be added after publication.]
 
