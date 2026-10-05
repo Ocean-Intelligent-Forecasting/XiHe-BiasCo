@@ -1,0 +1,320 @@
+seed_everything: 42
+
+# ---------------------------- TRAINER -------------------------------------------
+trainer:
+  default_root_dir: ${oc.env:OUTPUT_DIR,global_forecast_climax}
+
+  precision: bf16
+
+  #gpus: null
+  num_nodes: 1
+  accelerator: gpu
+  strategy: ddp
+  accumulate_grad_batches: 2
+  devices: 8
+  min_epochs: 1
+  max_epochs: 300
+  enable_progress_bar: true
+
+  sync_batchnorm: True
+  enable_checkpointing: True
+  #resume_from_checkpoint: null
+
+  # debugging
+  fast_dev_run: false
+
+  logger:
+    class_path: pytorch_lightning.loggers.tensorboard.TensorBoardLogger
+    init_args:
+      save_dir: ${trainer.default_root_dir}/logs/training
+      name: null
+      version: "1030_bais_FituneDC6Day_TrainDataXiHe1DYuBao_TrueDataMkt_surface_1day"
+      log_graph: False
+      default_hp_metric: True
+      prefix: ""
+
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: "step"
+
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: "${trainer.default_root_dir}/checkpoints_1030_bais_FituneDC6Day_TrainDataXiHe1DYuBao_TrueDataMkt_surface_1day"
+        monitor: "val_step1/w_rmse" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        save_top_k: 1 # save k best models (determined by above metric)
+        save_last: True # additionaly always save model from last epoch
+        verbose: False
+        filename: "epoch_{epoch:03d}"
+        auto_insert_metric_name: False
+
+    - class_path: pytorch_lightning.callbacks.EarlyStopping
+      init_args:
+        monitor: "val_step1/w_rmse" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        patience: 15 # how many validation epochs of not improving until training stops
+        min_delta: 0. # minimum change in the monitored metric needed to qualify as an improvement
+
+    - class_path: pytorch_lightning.callbacks.RichModelSummary
+      init_args:
+        max_depth: -1
+
+    - class_path: pytorch_lightning.callbacks.RichProgressBar
+
+# ---------------------------- MODEL -------------------------------------------
+model:
+  lr: 5e-5
+  beta_1: 0.9
+  beta_2: 0.99
+  weight_decay: 1e-5
+  warmup_epochs: 1
+  max_epochs: 100
+  warmup_start_lr: 1e-8
+  eta_min: 1e-8
+  pretrained_path: ""
+
+  net:
+    class_path: climax.arch.ClimaX_FC
+    init_args:
+      default_vars: [ 
+      'u',
+      'v',
+      'zos',
+      'sst',
+      'thetao_0',
+      'so_0',
+      'uo_0',
+      'vo_0',
+      'thetao_2',
+      'so_2',
+      'uo_2',
+      'vo_2',
+      'thetao_4',
+      'so_4',
+      'uo_4',
+      'vo_4',
+      'thetao_6',
+      'so_6',
+      'uo_6',
+      'vo_6',
+      'thetao_8',
+      'so_8',
+      'uo_8',
+      'vo_8',
+      'thetao_10',
+      'so_10',
+      'uo_10',
+      'vo_10',
+      'thetao_12',
+      'so_12',
+      'uo_12',
+      'vo_12',
+      'thetao_14',
+      'so_14',
+      'uo_14',
+      'vo_14',
+      'thetao_16',
+      'so_16',
+      'uo_16',
+      'vo_16',
+      'thetao_18',
+      'so_18',
+      'uo_18',
+      'vo_18',
+      'thetao_20',
+      'so_20',
+      'uo_20',
+      'vo_20',
+      'thetao_21',
+      'so_21',
+      'uo_21',
+      'vo_21'
+      ]
+      img_size: [2041, 4320]
+      patch_size: 6
+      embed_dim: 512
+      # depth: 8
+      # decoder_depth: 2
+      # num_heads: 16
+      # mlp_ratio: 4
+      drop_path: 0.2
+      drop_rate: 0.2
+      attn_drop: 0.2
+      #xihe_ckpt: /hpcfs/fhome/yangjh5/gpswin0815_finetune/global_forecast_climax/new/best_1to22_4day.ckpt
+      xihe_finetune: 1
+      xihe_ckpt: ""
+      mlp_ckpt: ""
+      #mlp_ckpt: /hpcfs/fhome/yangjh5/gpfcswin_2024/global_forecast_climax/second_best/1to22_20day_mlp.ckpt
+
+# ---------------------------- DATA -------------------------------------------
+data:
+  root_dir: /datadrive/datasets/5.625deg_equally_np/
+  variables: [ #原始数据的变量（按顺序）
+      'zos',
+      'u',
+      'v',
+      'sst',
+      'thetao_0',
+      'so_0',
+      'uo_0',
+      'vo_0',
+      'thetao_2',
+      'so_2',
+      'uo_2',
+      'vo_2',
+      'thetao_4',
+      'so_4',
+      'uo_4',
+      'vo_4',
+      'thetao_6',
+      'so_6',
+      'uo_6',
+      'vo_6',
+      'thetao_8',
+      'so_8',
+      'uo_8',
+      'vo_8',
+      'thetao_10',
+      'so_10',
+      'uo_10',
+      'vo_10',
+      'thetao_12',
+      'so_12',
+      'uo_12',
+      'vo_12',
+      'thetao_14',
+      'so_14',
+      'uo_14',
+      'vo_14',
+      'thetao_16',
+      'so_16',
+      'uo_16',
+      'vo_16',
+      'thetao_18',
+      'so_18',
+      'uo_18',
+      'vo_18',
+      'thetao_20',
+      'so_20',
+      'uo_20',
+      'vo_20',
+      'thetao_21',
+      'so_21',
+      'uo_21',
+      'vo_21',
+     ]
+  in_variables: [  #模型输入的变量（按顺序）
+      'zos',
+      'u',
+      'v',
+      'sst',
+      'thetao_0',
+      'so_0',
+      'uo_0',
+      'vo_0',
+      'thetao_2',
+      'so_2',
+      'uo_2',
+      'vo_2',
+      'thetao_4',
+      'so_4',
+      'uo_4',
+      'vo_4',
+      'thetao_6',
+      'so_6',
+      'uo_6',
+      'vo_6',
+      'thetao_8',
+      'so_8',
+      'uo_8',
+      'vo_8',
+      'thetao_10',
+      'so_10',
+      'uo_10',
+      'vo_10',
+      'thetao_12',
+      'so_12',
+      'uo_12',
+      'vo_12',
+      'thetao_14',
+      'so_14',
+      'uo_14',
+      'vo_14',
+      'thetao_16',
+      'so_16',
+      'uo_16',
+      'vo_16',
+      'thetao_18',
+      'so_18',
+      'uo_18',
+      'vo_18',
+      'thetao_20',
+      'so_20',
+      'uo_20',
+      'vo_20',
+      'thetao_21',
+      'so_21',
+      'uo_21',
+      'vo_21'
+      ]
+  out_variables: [ #模型输出的顺序（按顺序）
+      'zos',
+      'sst',
+      'thetao_0',
+      'so_0',
+      'uo_0',
+      'vo_0',
+      'thetao_2',
+      'so_2',
+      'uo_2',
+      'vo_2',
+      'thetao_4',
+      'so_4',
+      'uo_4',
+      'vo_4',
+      'thetao_6',
+      'so_6',
+      'uo_6',
+      'vo_6',
+      'thetao_8',
+      'so_8',
+      'uo_8',
+      'vo_8',
+      'thetao_10',
+      'so_10',
+      'uo_10',
+      'vo_10',
+      'thetao_12',
+      'so_12',
+      'uo_12',
+      'vo_12',
+      'thetao_14',
+      'so_14',
+      'uo_14',
+      'vo_14',
+      'thetao_16',
+      'so_16',
+      'uo_16',
+      'vo_16',
+      'thetao_18',
+      'so_18',
+      'uo_18',
+      'vo_18',
+      'thetao_20',
+      'so_20',
+      'uo_20',
+      'vo_20',
+      'thetao_21',
+      'so_21',
+      'uo_21',
+      'vo_21'
+      ]
+
+  predict_range: 0 #天数
+  hrs_each_step: 1
+  buffer_size: 1
+  batch_size: 1
+  num_workers: 1
+  pin_memory: False
+  num_nodes: 1
