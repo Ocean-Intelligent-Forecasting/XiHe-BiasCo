@@ -518,13 +518,7 @@ The complete 25-year XiHe forecast archive, operational PSY4 forecast fields, ob
 
 Representative one-day PSY4 fields before and after correction are provided separately:
 
-**Sample data:** [SAMPLE_DATA_URL]
-
-**Access code:** [ACCESS_CODE, if required]
-
-The availability of the trained CKPT files should be described consistently with the Code Availability statement of the associated manuscript:
-
-**[CHECKPOINT_AVAILABILITY_STATEMENT]**
+**Sample data:** [Baidu netdisk](https://pan.baidu.com/s/1ZMB4WrNqkFPWvmNcBBJw2g?pwd=qr2c)
 
 Information on the observational and operational datasets used for scientific evaluation is provided in the Data Availability statement of the associated manuscript.
 
