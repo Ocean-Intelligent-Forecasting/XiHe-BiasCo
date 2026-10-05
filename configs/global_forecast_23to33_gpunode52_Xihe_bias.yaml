@@ -1,0 +1,204 @@
+seed_everything: 42
+
+# ---------------------------- TRAINER -------------------------------------------
+trainer:
+  default_root_dir: ${oc.env:OUTPUT_DIR,global_forecast_climax}
+
+  precision: bf16
+
+  #gpus: null
+  num_nodes: 1
+  accelerator: gpu
+  strategy: ddp
+  accumulate_grad_batches: 2
+  
+  min_epochs: 1
+  max_epochs: 100
+  enable_progress_bar: true
+
+  sync_batchnorm: True
+  enable_checkpointing: True
+  #resume_from_checkpoint: null
+
+  # debugging
+  fast_dev_run: false
+
+  logger:
+    class_path: pytorch_lightning.loggers.tensorboard.TensorBoardLogger
+    init_args:
+      save_dir: ${trainer.default_root_dir}/logs/training
+      name: null
+      version: "1112_bias_FituneDC4Day_TrainDataXiHe1DYuBao_TrueDataMkt_deep_1day"
+      log_graph: False
+      default_hp_metric: True
+      prefix: ""
+
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: "step"
+
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: "${trainer.default_root_dir}/checkpoints_1112_bias_FituneDC4Day_TrainDataXiHe1DYuBao_TrueDataMkt_deep_1day"
+        monitor: "val_step1/w_rmse" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        save_top_k: 1 # save k best models (determined by above metric)
+        save_last: True # additionaly always save model from last epoch
+        verbose: False
+        filename: "epoch_{epoch:03d}"
+        auto_insert_metric_name: False
+
+    - class_path: pytorch_lightning.callbacks.EarlyStopping
+      init_args:
+        monitor: "val_step1/w_rmse" # name of the logged metric which determines when model is improving
+        mode: "min" # "max" means higher metric value is better, can be also "min"
+        patience: 10 # how many validation epochs of not improving until training stops
+        min_delta: 0. # minimum change in the monitored metric needed to qualify as an improvement
+
+    - class_path: pytorch_lightning.callbacks.RichModelSummary
+      init_args:
+        max_depth: -1
+
+    - class_path: pytorch_lightning.callbacks.RichProgressBar
+
+# ---------------------------- MODEL -------------------------------------------
+model:
+  lr: 5e-5
+  beta_1: 0.9
+  beta_2: 0.99
+  weight_decay: 1e-5
+  warmup_epochs: 1
+  max_epochs: 100
+  warmup_start_lr: 1e-8
+  eta_min: 1e-8
+  pretrained_path: ""
+
+  net:
+    class_path: climax.arch.ClimaX_FC
+    init_args:
+      default_vars: [
+      'zos',
+      'u',
+      'v',
+      'sst',
+      'thetao_23',
+      'so_23',
+      'uo_23',
+      'vo_23',
+      'thetao_24',
+      'so_24',
+      'uo_24',
+      'vo_24',
+      'thetao_25',
+      'so_25',
+      'uo_25',
+      'vo_25'
+      ]
+      img_size: [2041, 4320]
+      patch_size: 6
+      embed_dim: 512
+      #depth: 8
+      #decoder_depth: 2
+      # num_heads: 16
+      #mlp_ratio: 4
+      drop_path: 0.2
+      drop_rate: 0.2
+      attn_drop: 0.2
+      #xihe_ckpt: /hpcfs/fhome/yangjh5/gpswin0815_finetune/global_forecast_climax/checkpoints_23to33_30day_old_v2/last.ckpt
+      xihe_ckpt: ""
+      mlp_ckpt: ""
+      xihe_finetune: 1
+
+# ---------------------------- DATA -------------------------------------------
+data:
+  root_dir: /datadrive/datasets/5.625deg_equally_np/
+  variables: [
+      'zos',
+      'u',
+      'v',
+      'sst',
+      'thetao_23',
+      'so_23',
+      'uo_23',
+      'vo_23',
+      'thetao_24',
+      'so_24',
+      'uo_24',
+      'vo_24',
+      'thetao_25',
+      'so_25',
+      'uo_25',
+      'vo_25',
+      'thetao_26',
+      'so_26',
+      'uo_26',
+      'vo_26',
+      'thetao_27',
+      'so_27',
+      'uo_27',
+      'vo_27',
+      'thetao_28',
+      'so_28',
+      'uo_28',
+      'vo_28',
+      'thetao_29',
+      'so_29',
+      'uo_29',
+      'vo_29',
+      'thetao_30',
+      'so_30',
+      'uo_30',
+      'vo_30',
+      'thetao_31',
+      'so_31',
+      'uo_31',
+      'vo_31',
+      'thetao_32',
+      'so_32',
+      'uo_32',
+      'vo_32',
+      'thetao_33',
+      'so_33',
+      'uo_33',
+      'vo_33'
+  ]
+  in_variables: [
+      'zos',
+      'u',
+      'v',
+      'sst',
+      'thetao_23',
+      'so_23',
+      'uo_23',
+      'vo_23',
+      'thetao_24',
+      'so_24',
+      'uo_24',
+      'vo_24',
+      'thetao_25',
+      'so_25',
+      'uo_25',
+      'vo_25'
+      ]
+  out_variables: [
+      'thetao_23',
+      'so_23',
+      'uo_23',
+      'vo_23',
+      'thetao_24',
+      'so_24',
+      'uo_24',
+      'vo_24',
+      'thetao_25',
+      'so_25',
+      'uo_25',
+      'vo_25'
+    ]
+  predict_range: 0 #天数
+  hrs_each_step: 1
+  buffer_size: 1
+  batch_size: 1
+  num_workers: 6
+  pin_memory: False
+  num_nodes: 1
